@@ -1,4 +1,4 @@
-package main
+package bzlremotecache
 
 import (
 	"context"
@@ -14,6 +14,7 @@ import (
 	"google.golang.org/grpc/status"
 )
 
+// BazelRemoteCache is a client of a Bazel remote cache.
 type BazelRemoteCache struct {
 	client       *grpc.ClientConn
 	instanceName string
@@ -22,7 +23,8 @@ type BazelRemoteCache struct {
 	cas remoteexecution.ContentAddressableStorageClient
 }
 
-func NewBazelRemoteCache(ctx context.Context, remote string, instanceName string) (*BazelRemoteCache, error) {
+// New creates a new client to access of a Bazel remote cache.
+func New(ctx context.Context, remote string, instanceName string) (*BazelRemoteCache, error) {
 	client, err := grpc.DialContext(
 		ctx, remote,
 		grpc.WithTransportCredentials(
@@ -44,20 +46,65 @@ func NewBazelRemoteCache(ctx context.Context, remote string, instanceName string
 	}, nil
 }
 
-func (brc *BazelRemoteCache) GetCacheResult(ctx context.Context, digest string) (*remoteexecution.ActionResult, error) {
-	return brc.ac.GetActionResult(ctx, &remoteexecution.GetActionResultRequest{
+// GetCacheResult returns the given ActionCache stored in the Bazel remote cache.
+func (brc *BazelRemoteCache) GetCacheResult(ctx context.Context, digest string) (*ActionResult, error) {
+	ar, err := brc.ac.GetActionResult(ctx, &remoteexecution.GetActionResultRequest{
 		InstanceName: brc.instanceName,
 		ActionDigest: &remoteexecution.Digest{
 			Hash:      digest,
 			SizeBytes: 1,
 		},
 	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	outputFiles := make([]OutputFile, len(ar.OutputFiles))
+	for idx, of := range ar.OutputFiles {
+		outputFiles[idx] = OutputFile{
+			Path: of.Path,
+			Digest: Digest{
+				Hash: of.Digest.Hash,
+				Size: of.Digest.SizeBytes,
+			},
+			IsExecutable: of.IsExecutable,
+		}
+	}
+
+	var stdoutDigest *Digest
+	if ar.StdoutDigest != nil && ar.StdoutDigest.SizeBytes > 0 {
+		stdoutDigest = &Digest{
+			Hash: ar.StdoutDigest.Hash,
+			Size: ar.StdoutDigest.SizeBytes,
+		}
+	}
+
+	var stderrDigest *Digest
+	if ar.StderrDigest != nil && ar.StderrDigest.SizeBytes > 0 {
+		stderrDigest = &Digest{
+			Hash: ar.StderrDigest.Hash,
+			Size: ar.StderrDigest.SizeBytes,
+		}
+	}
+
+	return &ActionResult{
+		OutputFiles:  outputFiles,
+		StdoutDigest: stdoutDigest,
+		StderrDigest: stderrDigest,
+	}, nil
 }
 
-func (brc *BazelRemoteCache) GetBlob(ctx context.Context, digest *remoteexecution.Digest) ([]byte, error) {
+// GetBlob returns the content of a Bazel remote cache blob.
+func (brc *BazelRemoteCache) GetBlob(ctx context.Context, digest *Digest) ([]byte, error) {
 	resp, err := brc.cas.BatchReadBlobs(ctx, &remoteexecution.BatchReadBlobsRequest{
 		InstanceName: brc.instanceName,
-		Digests:      []*remoteexecution.Digest{digest},
+		Digests: []*remoteexecution.Digest{
+			{
+				Hash:      digest.Hash,
+				SizeBytes: digest.Size,
+			},
+		},
 	})
 
 	if err != nil {
@@ -81,6 +128,7 @@ func (brc *BazelRemoteCache) GetBlob(ctx context.Context, digest *remoteexecutio
 	return r.Data, nil
 }
 
+// ErrorMsg returns the error message of the given error.
 func (brc *BazelRemoteCache) ErrorMsg(err error) string {
 	var errMsg string
 	if st, ok := status.FromError(err); ok {
@@ -97,6 +145,7 @@ func (brc *BazelRemoteCache) ErrorMsg(err error) string {
 	return errMsg
 }
 
+// Close closed the client of a Bazel remote cache.
 func (brc *BazelRemoteCache) Close() {
 	if err := brc.client.Close(); err != nil {
 		fmt.Fprintf(os.Stderr, "Warning: Can't close gRPC client: %v\n", err)

@@ -8,10 +8,12 @@ import (
 	"time"
 
 	"github.com/spf13/cobra"
+
+	"github.mpi-internal.com/jean-baptiste-bronisz/bazel-remote-cache-client/internal/bzlremotecache"
 )
 
 type application struct {
-	BazelRemoteCache *BazelRemoteCache
+	BazelRemoteCache *bzlremotecache.BazelRemoteCache
 }
 
 func (app *application) Cleanup() {
@@ -50,7 +52,7 @@ func main() {
 				return errors.New("bazel remote cache address not given")
 			}
 
-			app.BazelRemoteCache, err = NewBazelRemoteCache(
+			app.BazelRemoteCache, err = bzlremotecache.New(
 				ctx, remoteFlag, instanceNameFlag,
 			)
 

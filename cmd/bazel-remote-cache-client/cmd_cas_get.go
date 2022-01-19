@@ -5,16 +5,15 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"strconv"
-	"strings"
 
-	remoteexecution "github.com/bazelbuild/remote-apis/build/bazel/remote/execution/v2"
 	"github.com/spf13/cobra"
+
+	"github.mpi-internal.com/jean-baptiste-bronisz/bazel-remote-cache-client/internal/bzlremotecache"
 )
 
 func newCASGetCmd(app *application) *cobra.Command {
 	var (
-		digest         *remoteexecution.Digest
+		digest         *bzlremotecache.Digest
 		outputFilePath string
 		isExecutable   bool
 	)
@@ -26,7 +25,7 @@ func newCASGetCmd(app *application) *cobra.Command {
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			var err error
 
-			digest, err = parseDigestFromString(args[0])
+			digest, err = bzlremotecache.ParseDigestFromString(args[0])
 			if err != nil {
 				return err
 			}
@@ -94,21 +93,4 @@ func newCASGetCmd(app *application) *cobra.Command {
 	)
 
 	return &cmd
-}
-
-func parseDigestFromString(s string) (*remoteexecution.Digest, error) {
-	pair := strings.Split(s, "/")
-	if len(pair) != 2 {
-		return nil, fmt.Errorf("expected digest in the form hash/size, got %s", s)
-	}
-
-	size, err := strconv.ParseInt(pair[1], 10, 64)
-	if err != nil {
-		return nil, fmt.Errorf("invalid size in digest %s: %s", s, err)
-	}
-
-	return &remoteexecution.Digest{
-		Hash:      pair[0],
-		SizeBytes: size,
-	}, nil
 }
