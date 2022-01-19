@@ -1,0 +1,14 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "bazel-remote-cache-client_lib",
+    srcs = ["main.go"],
+    importpath = "github.mpi-internal.com/jean-baptiste-bronisz/bazel-remote-cache-client/cmd/bazel-remote-cache-client",
+    visibility = ["//visibility:private"],
+)
+
+go_binary(
+    name = "bazel-remote-cache-client",
+    embed = [":bazel-remote-cache-client_lib"],
+    visibility = ["//visibility:public"],
+)

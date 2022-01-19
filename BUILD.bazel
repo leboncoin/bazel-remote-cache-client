@@ -1,0 +1,18 @@
+load("@bazel_gazelle//:def.bzl", "gazelle")
+
+# gazelle:prefix github.mpi-internal.com/jean-baptiste-bronisz/bazel-remote-cache-client
+
+gazelle(
+    name = "gazelle",
+    command = "fix",
+)
+
+gazelle(
+    name = "gazelle-update-repos",
+    args = [
+        "-from_file=go.mod",
+        "-to_macro=deps.bzl%go_repositories",
+        "-prune",
+    ],
+    command = "update-repos",
+)
