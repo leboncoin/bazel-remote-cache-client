@@ -12,6 +12,7 @@ go_library(
     ],
     importpath = "github.mpi-internal.com/jean-baptiste-bronisz/bazel-remote-cache-client/cmd/bazel-remote-cache-client",
     visibility = ["//visibility:private"],
+    x_defs = {"main.appVersion": "{STABLE_VERSION}"},
     deps = [
         "//internal/bzlremotecache",
         "@com_github_fatih_color//:color",

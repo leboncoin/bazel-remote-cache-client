@@ -12,6 +12,10 @@ import (
 	"github.mpi-internal.com/jean-baptiste-bronisz/bazel-remote-cache-client/internal/bzlremotecache"
 )
 
+var (
+	appVersion = "unknown"
+)
+
 type application struct {
 	BazelRemoteCache *bzlremotecache.BazelRemoteCache
 }
@@ -60,6 +64,7 @@ func main() {
 		},
 		SilenceUsage:  true,
 		SilenceErrors: true,
+		Version:       appVersion,
 	}
 
 	flags := cmd.PersistentFlags()
