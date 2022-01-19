@@ -62,7 +62,7 @@ func main() {
 		&remoteFlag, "remote", "r", "",
 		"Remote cache URL (<host>:<port>)",
 	)
-	cmd.MarkPersistentFlagRequired("remote")
+	_ = cmd.MarkPersistentFlagRequired("remote")
 
 	flags.StringVarP(
 		&instanceNameFlag, "instance-name", "i", "",
@@ -78,6 +78,7 @@ func main() {
 
 	cmd.AddCommand(
 		newACCmd(&app),
+		newCASCmd(&app),
 	)
 
 	if err := cmd.Execute(); err != nil {

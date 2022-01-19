@@ -20,8 +20,6 @@ func newACGetCmd(app *application) *cobra.Command {
 
 			for _, digest := range args {
 				result, err := app.BazelRemoteCache.GetCacheResult(cmd.Context(), digest)
-				if err != nil {
-				}
 
 				if hasCacheResult {
 					fmt.Println()
