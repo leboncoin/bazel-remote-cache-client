@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"time"
@@ -45,6 +46,10 @@ func main() {
 			ctx, cancel := context.WithTimeout(cmd.Context(), 5*time.Second)
 			defer cancel()
 
+			if remoteFlag == "" {
+				return errors.New("bazel remote cache address not given")
+			}
+
 			app.BazelRemoteCache, err = NewBazelRemoteCache(
 				ctx, remoteFlag, instanceNameFlag,
 			)
@@ -59,10 +64,9 @@ func main() {
 	flags.SortFlags = false
 
 	flags.StringVarP(
-		&remoteFlag, "remote", "r", "",
+		&remoteFlag, "remote", "r", os.Getenv("BAZEL_REMOTE_CACHE"),
 		"Remote cache URL (<host>:<port>)",
 	)
-	_ = cmd.MarkPersistentFlagRequired("remote")
 
 	flags.StringVarP(
 		&instanceNameFlag, "instance-name", "i", "",
