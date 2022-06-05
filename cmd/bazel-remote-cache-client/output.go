@@ -9,7 +9,7 @@ import (
 	"github.com/fatih/color"
 	"google.golang.org/grpc/codes"
 
-	"github.mpi-internal.com/jean-baptiste-bronisz/bazel-remote-cache-client/pkg/bzlremotelogging"
+	"github.com/leboncoin/bazel-remote-cache-client/pkg/bzlremotelogging"
 )
 
 var (

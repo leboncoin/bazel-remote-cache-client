@@ -11,7 +11,7 @@ import (
 	"github.com/spf13/cobra"
 	"google.golang.org/protobuf/proto"
 
-	"github.mpi-internal.com/jean-baptiste-bronisz/bazel-remote-cache-client/pkg/bzlremotelogging"
+	"github.com/leboncoin/bazel-remote-cache-client/pkg/bzlremotelogging"
 )
 
 func newLogCmd(_ *application) *cobra.Command {

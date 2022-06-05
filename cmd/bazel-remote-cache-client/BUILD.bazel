@@ -11,7 +11,7 @@ go_library(
         "main.go",
         "output.go",
     ],
-    importpath = "github.mpi-internal.com/jean-baptiste-bronisz/bazel-remote-cache-client/cmd/bazel-remote-cache-client",
+    importpath = "github.com/leboncoin/bazel-remote-cache-client/cmd/bazel-remote-cache-client",
     visibility = ["//visibility:private"],
     x_defs = {"main.appVersion": "{STABLE_VERSION}"},
     deps = [

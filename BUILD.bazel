@@ -1,6 +1,6 @@
 load("@bazel_gazelle//:def.bzl", "gazelle")
 
-# gazelle:prefix github.mpi-internal.com/jean-baptiste-bronisz/bazel-remote-cache-client
+# gazelle:prefix github.com/leboncoin/bazel-remote-cache-client
 
 gazelle(
     name = "gazelle",

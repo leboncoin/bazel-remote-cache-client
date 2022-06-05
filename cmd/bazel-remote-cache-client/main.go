@@ -9,7 +9,7 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.mpi-internal.com/jean-baptiste-bronisz/bazel-remote-cache-client/pkg/bzlremotecache"
+	"github.com/leboncoin/bazel-remote-cache-client/pkg/bzlremotecache"
 )
 
 var (

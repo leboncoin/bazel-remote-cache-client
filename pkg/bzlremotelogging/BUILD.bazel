@@ -30,7 +30,7 @@ proto_library(
 
 go_proto_library(
     name = "bzlremotelogging",
-    importpath = "github.mpi-internal.com/jean-baptiste-bronisz/bazel-remote-cache-client/pkg/bzlremotelogging",
+    importpath = "github.com/leboncoin/bazel-remote-cache-client/pkg/bzlremotelogging",
     proto = ":remote_logging_proto",
     visibility = ["//visibility:public"],
     deps = [
