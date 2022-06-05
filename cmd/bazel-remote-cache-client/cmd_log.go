@@ -21,7 +21,7 @@ func newLogCmd(_ *application) *cobra.Command {
 
 	cmd := cobra.Command{
 		Use:   "log [flags] <filepath>...",
-		Short: "Print in a human-readable gRPC remote execution log files",
+		Short: "Print in a human-readable format a gRPC remote execution log file",
 		Args:  cobra.MinimumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			var count int

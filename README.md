@@ -5,12 +5,13 @@
 ![languague: Go](https://img.shields.io/badge/language-go-007d9c)
 ![build: Bazel](https://img.shields.io/badge/build-bazel-43a047)
 
-`bazel-remote-cache-client` is a tool to easily access of a [Bazel remote cache] objects.
+`bazel-remote-cache-client` is a tool to easily access of a [Bazel remote cache] object.
 
 This tools is able to:
 
-- Read a specific Action Cache object.
-- Read a specific Blob object.
+- Read a specific AC object.
+- Read a specific CAS object.
+- Read a gRPC remote cache log file created by `bazel --experimental_remote_grpc_log`.
 
 ## Installation
 
@@ -33,15 +34,15 @@ Usage:
   bazel-remote-cache-client [command]
 
 Available Commands:
-  action-cache              
-  content-addressable-store 
+  action-cache              Manage AC entries
+  content-addressable-store Manage CAS entries
   help                      Help about any command
+  log                       Print in a human-readable format a gRPC remote execution log file
 
 Flags:
-  -h, --help                   Show this help and exit
-  -i, --instance-name string   Instance name of the remote cache
-      --no-color               Disable color output
-  -r, --remote string          Remote cache URL (<host>:<port>) (default "$BAZEL_REMOTE_CACHE")
+  -h, --help       Show this help and exit
+      --no-color   Disable color output
+  -v, --version    version for bazel-remote-cache-client
 
 Use "bazel-remote-cache-client [command] --help" for more information about a command.
 ```
@@ -49,7 +50,7 @@ Use "bazel-remote-cache-client [command] --help" for more information about a co
 ### Read AC object
 
 ```sh
-$ bazel-remote-cache-client --remote localhost:9092 ac get \
+$ bazel-remote-cache-client ac get --remote localhost:9092 \
     908085c97f53e58132f07eb7c64118ec05a67ed7ab93102b914e54b96c293488 \
     ed54247875d2f69fada38439d47bff3f322b2c8ce057a09d185699868ab30390
 ```
@@ -72,7 +73,7 @@ ed54247875d2f69fada38439d47bff3f322b2c8ce057a09d185699868ab30390:
 ### Read CAS object
 
 ```sh
-$ bazel-remote-cache-client --remote localhost:9092 cas get \
+$ bazel-remote-cache-client cas get --remote localhost:9092 \
     19a8a1640ff62fe13a078b08cf04ea29df596a4ac9c6247c0a1032b21e1fa1e7/196
 ```
 
