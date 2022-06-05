@@ -9,7 +9,7 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.mpi-internal.com/jean-baptiste-bronisz/bazel-remote-cache-client/internal/bzlremotecache"
+	"github.mpi-internal.com/jean-baptiste-bronisz/bazel-remote-cache-client/pkg/bzlremotecache"
 )
 
 var (
@@ -90,6 +90,7 @@ func main() {
 	cmd.AddCommand(
 		newACCmd(&app),
 		newCASCmd(&app),
+		newLogCmd(&app),
 	)
 
 	if err := cmd.Execute(); err != nil {

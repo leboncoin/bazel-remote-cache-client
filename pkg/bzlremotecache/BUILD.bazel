@@ -3,11 +3,10 @@ load("@io_bazel_rules_go//go:def.bzl", "go_library")
 go_library(
     name = "bzlremotecache",
     srcs = [
-        "action_result.go",
         "client.go",
         "digest.go",
     ],
-    importpath = "github.mpi-internal.com/jean-baptiste-bronisz/bazel-remote-cache-client/internal/bzlremotecache",
+    importpath = "github.mpi-internal.com/jean-baptiste-bronisz/bazel-remote-cache-client/pkg/bzlremotecache",
     visibility = ["//:__subpackages__"],
     deps = [
         "@com_github_bazelbuild_remote_apis//build/bazel/remote/execution/v2:go_default_library",

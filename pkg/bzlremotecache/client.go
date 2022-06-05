@@ -47,52 +47,14 @@ func New(ctx context.Context, remote string, instanceName string) (*BazelRemoteC
 }
 
 // GetCacheResult returns the given ActionCache stored in the Bazel remote cache.
-func (brc *BazelRemoteCache) GetCacheResult(ctx context.Context, digest string) (*ActionResult, error) {
-	ar, err := brc.ac.GetActionResult(ctx, &remoteexecution.GetActionResultRequest{
+func (brc *BazelRemoteCache) GetCacheResult(ctx context.Context, digest string) (*remoteexecution.ActionResult, error) {
+	return brc.ac.GetActionResult(ctx, &remoteexecution.GetActionResultRequest{
 		InstanceName: brc.instanceName,
 		ActionDigest: &remoteexecution.Digest{
 			Hash:      digest,
 			SizeBytes: 1,
 		},
 	})
-
-	if err != nil {
-		return nil, err
-	}
-
-	outputFiles := make([]OutputFile, len(ar.OutputFiles))
-	for idx, of := range ar.OutputFiles {
-		outputFiles[idx] = OutputFile{
-			Path: of.Path,
-			Digest: Digest{
-				Hash: of.Digest.Hash,
-				Size: of.Digest.SizeBytes,
-			},
-			IsExecutable: of.IsExecutable,
-		}
-	}
-
-	var stdoutDigest *Digest
-	if ar.StdoutDigest != nil && ar.StdoutDigest.SizeBytes > 0 {
-		stdoutDigest = &Digest{
-			Hash: ar.StdoutDigest.Hash,
-			Size: ar.StdoutDigest.SizeBytes,
-		}
-	}
-
-	var stderrDigest *Digest
-	if ar.StderrDigest != nil && ar.StderrDigest.SizeBytes > 0 {
-		stderrDigest = &Digest{
-			Hash: ar.StderrDigest.Hash,
-			Size: ar.StderrDigest.SizeBytes,
-		}
-	}
-
-	return &ActionResult{
-		OutputFiles:  outputFiles,
-		StdoutDigest: stdoutDigest,
-		StderrDigest: stderrDigest,
-	}, nil
 }
 
 // GetBlob returns the content of a Bazel remote cache blob.
