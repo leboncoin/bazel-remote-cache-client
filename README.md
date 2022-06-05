@@ -69,7 +69,7 @@ ed54247875d2f69fada38439d47bff3f322b2c8ce057a09d185699868ab30390:
       |- c1d243b3b868a91f30fc43d179fbcb5df76c84583a06303b2dce5f7d0e7cf392/2535424
 ```
 
-### Read Blob object
+### Read CAS object
 
 ```sh
 $ bazel-remote-cache-client --remote localhost:9092 cas get \
@@ -83,5 +83,18 @@ Executing tests from //wd/foo:foo_test
 PASS
 coverage: 50.0% of statements
 ```
+
+### Read gRPC remote cache log file
+
+```sh
+$ bazel build build \
+    --remote_cache=grpc://localhost:9092 \
+    --experimental_remote_grpc_log=/tmp/grpc.log \
+    //...
+
+$ bazel-remote-cache-client log /tmp/grpc.log
+```
+
+![log-example](docs/img/log-example.png)
 
 [Bazel remote cache]: https://github.com/buchgr/bazel-remote
