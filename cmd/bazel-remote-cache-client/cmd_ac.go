@@ -7,6 +7,7 @@ import (
 func newACCmd(app *application) *cobra.Command {
 	cmd := cobra.Command{
 		Use:     "action-cache [flags]",
+		Short:   "Manage AC entries",
 		Aliases: []string{"ac"},
 	}
 

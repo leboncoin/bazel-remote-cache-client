@@ -17,9 +17,10 @@ var (
 	errorColor    = color.New(color.FgRed, color.Bold)
 	okColor       = color.New(color.FgGreen)
 	cyanColor     = color.New(color.FgCyan)
-	magentaColor  = color.New(color.FgMagenta, color.Bold)
+	magentaColor  = color.New(color.FgMagenta)
 	yellowColor   = color.New(color.FgYellow)
 	boldColor     = color.New(color.Bold)
+	blueColor     = color.New(color.FgBlue)
 	faintColor    = color.New(color.Faint)
 	redColor      = color.New(color.FgRed)
 
@@ -103,13 +104,13 @@ func printOutputDirectory(prefix string, od *remoteexecution.OutputDirectory) {
 	fmt.Printf(prefix+"  |- %s\n", getColoredDigest(od.TreeDigest))
 }
 
-func printLogEntry(le *bzlremotelogging.LogEntry) {
+func printLogEntry(le *bzlremotelogging.LogEntry, showMetadata bool) {
 	startTime := le.StartTime.AsTime().Local()
 	endTime := le.EndTime.AsTime().Local()
 
 	fmt.Printf(
 		"[%s] %s - %s (%s)\n",
-		startTime.Format("02 Jan 2006 15:04:05.000"),
+		magentaColor.Sprint(startTime.Format("02 Jan 2006 15:04:05.000")),
 		getColoredGRPCMethod(le.MethodName),
 		getColoredGRPCCode(le.Status.Code),
 		endTime.Sub(startTime),
@@ -118,29 +119,31 @@ func printLogEntry(le *bzlremotelogging.LogEntry) {
 	prefix := "    "
 
 	if le.Status.Message != "" {
-		fmt.Printf(prefix+"%s: %s\n", cf("Message"), faintColor.Sprint(le.Status.Message))
+		fmt.Printf(prefix+"%s: %s\n", cf("Message"), blueColor.Sprint(le.Status.Message))
 	}
 
-	fmt.Printf(prefix+"%s:\n", cf("Metadata"))
-	fmt.Printf(prefix+"|- %s:\t\t\t%s (%s) / %s\n", cf("Tool"),
-		le.Metadata.ToolDetails.ToolName,
-		le.Metadata.ToolDetails.ToolVersion,
-		le.Metadata.ToolInvocationId,
-	)
-	if le.Metadata.ActionId != "" {
-		fmt.Printf(prefix+"|- %s:\t\t%s\n", cf("ActionId"), le.Metadata.ActionId)
-	}
-	if le.Metadata.CorrelatedInvocationsId != "" {
-		fmt.Printf(prefix+"|- %s:\t%s\n", cf("CorrelatedInvocationsId"), le.Metadata.CorrelatedInvocationsId)
-	}
-	if le.Metadata.ActionMnemonic != "" {
-		fmt.Printf(prefix+"|- %s:\t\t%s\n", cf("ActionMnemonic"), le.Metadata.ActionMnemonic)
-	}
-	if le.Metadata.TargetId != "" {
-		fmt.Printf(prefix+"|- %s:\t\t%s\n", cf("TargetId"), magentaColor.Sprint(le.Metadata.TargetId))
-	}
-	if le.Metadata.ConfigurationId != "" {
-		fmt.Printf(prefix+"|- %s:\t\t%s\n", cf("ConfigurationId"), le.Metadata.ConfigurationId)
+	if showMetadata {
+		fmt.Printf(prefix+"%s:\n", cf("Metadata"))
+		fmt.Printf(prefix+"|- %s:\t\t\t%s (%s) / %s\n", cf("Tool"),
+			le.Metadata.ToolDetails.ToolName,
+			le.Metadata.ToolDetails.ToolVersion,
+			le.Metadata.ToolInvocationId,
+		)
+		if le.Metadata.ActionId != "" {
+			fmt.Printf(prefix+"|- %s:\t\t%s\n", cf("ActionId"), le.Metadata.ActionId)
+		}
+		if le.Metadata.CorrelatedInvocationsId != "" {
+			fmt.Printf(prefix+"|- %s:\t%s\n", cf("CorrelatedInvocationsId"), le.Metadata.CorrelatedInvocationsId)
+		}
+		if le.Metadata.ActionMnemonic != "" {
+			fmt.Printf(prefix+"|- %s:\t\t%s\n", cf("ActionMnemonic"), le.Metadata.ActionMnemonic)
+		}
+		if le.Metadata.TargetId != "" {
+			fmt.Printf(prefix+"|- %s:\t\t%s\n", cf("TargetId"), magentaColor.Sprint(le.Metadata.TargetId))
+		}
+		if le.Metadata.ConfigurationId != "" {
+			fmt.Printf(prefix+"|- %s:\t\t%s\n", cf("ConfigurationId"), le.Metadata.ConfigurationId)
+		}
 	}
 
 	if gcr := le.Details.GetGetCapabilities(); gcr != nil {
@@ -214,7 +217,7 @@ func printUpdateActionResultDetails(prefix string, uar *bzlremotelogging.UpdateA
 	if uar.Request.InstanceName != "" {
 		fmt.Printf(prefix+"\t|- %s: %s\n", cf("InstanceName"), uar.Request.InstanceName)
 	}
-	if uar.Request.ActionDigest != nil && uar.Request.ActionDigest.SizeBytes > 0 {
+	if uar.Request.ActionDigest != nil {
 		fmt.Printf(prefix+"\t|- %s: %s\n", cf("ActionDigest"), getColoredDigest(uar.Request.ActionDigest))
 	}
 	if uar.Request.ActionResult != nil {
@@ -256,21 +259,39 @@ func printReadDetails(prefix string, r *bzlremotelogging.ReadDetails) {
 func printWriteDetails(prefix string, w *bzlremotelogging.WriteDetails) {
 	fmt.Println(prefix + reqPrefix)
 	if len(w.ResourceNames) > 0 {
-		fmt.Printf(prefix+"\t|- %s\n", cf("ResourceNames"))
-		for _, resourceName := range w.ResourceNames {
-			fmt.Printf(prefix+"\t   - %s\n", faintColor.Sprint(resourceName))
+		if len(w.ResourceNames) == 1 {
+			fmt.Printf(
+				prefix+"\t|- %s: [%s]\n",
+				cf("ResourceNames"),
+				faintColor.Sprint(w.ResourceNames[0]),
+			)
+		} else {
+			fmt.Printf(prefix+"\t|- %s\n", cf("ResourceNames"))
+			for _, resourceName := range w.ResourceNames {
+				fmt.Printf(prefix+"\t   - %s\n", faintColor.Sprint(resourceName))
+			}
 		}
 	}
 	if len(w.Offsets) > 0 {
-		fmt.Printf(prefix+"\t|- %s\n", cf("Offsets"))
-		for _, offset := range w.Offsets {
-			fmt.Printf(prefix+"\t   - %d\n", offset)
+		if len(w.Offsets) == 1 {
+			if w.Offsets[0] != 0 {
+				fmt.Printf(prefix+"\t|- %s: [%d]\n", cf("Offsets"), w.Offsets[0])
+			}
+		} else {
+			fmt.Printf(prefix+"\t|- %s\n", cf("Offsets"))
+			for _, offset := range w.Offsets {
+				fmt.Printf(prefix+"\t   - %d\n", offset)
+			}
 		}
 	}
 	if len(w.FinishWrites) > 0 {
-		fmt.Printf(prefix+"\t|- %s\n", cf("FinishWrites"))
-		for _, finishWrite := range w.FinishWrites {
-			fmt.Printf(prefix+"\t   - %d\n", finishWrite)
+		if len(w.FinishWrites) == 1 {
+			fmt.Printf(prefix+"\t|- %s: [%d]\n", cf("FinishWrites"), w.FinishWrites[0])
+		} else {
+			fmt.Printf(prefix+"\t|- %s\n", cf("FinishWrites"))
+			for _, finishWrite := range w.FinishWrites {
+				fmt.Printf(prefix+"\t   - %d\n", finishWrite)
+			}
 		}
 	}
 	if w.NumWrites > 0 {
@@ -292,17 +313,33 @@ func printFindMissingBlobsDetails(prefix string, fmb *bzlremotelogging.FindMissi
 		fmt.Printf(prefix+"\t|- %s: %s\n", cf("InstanceName"), fmb.Request.InstanceName)
 	}
 	if len(fmb.Request.BlobDigests) > 0 {
-		fmt.Printf(prefix+"\t|- %s\n", cf("BlobDigests"))
-		for _, bd := range fmb.Request.BlobDigests {
-			fmt.Printf(prefix+"\t   - %s\n", getColoredDigest(bd))
+		if len(fmb.Request.BlobDigests) == 1 {
+			fmt.Printf(
+				prefix+"\t|- %s: [%s]\n",
+				cf("BlobDigests"),
+				getColoredDigest(fmb.Request.BlobDigests[0]),
+			)
+		} else {
+			fmt.Printf(prefix+"\t|- %s\n", cf("BlobDigests"))
+			for _, bd := range fmb.Request.BlobDigests {
+				fmt.Printf(prefix+"\t   - %s\n", getColoredDigest(bd))
+			}
 		}
 	}
 
 	fmt.Println(prefix + respPrefix)
 	if len(fmb.Response.MissingBlobDigests) > 0 {
-		fmt.Printf(prefix+"\t|- %s\n", cf("MissingBlobDigests"))
-		for _, mbd := range fmb.Response.MissingBlobDigests {
-			fmt.Printf(prefix+"\t   - %s\n", getColoredDigest(mbd))
+		if len(fmb.Response.MissingBlobDigests) == 1 {
+			fmt.Printf(
+				prefix+"\t|- %s: [%s]\n",
+				cf("MissingBlobDigests"),
+				getColoredDigest(fmb.Response.MissingBlobDigests[0]),
+			)
+		} else {
+			fmt.Printf(prefix+"\t|- %s\n", cf("MissingBlobDigests"))
+			for _, mbd := range fmb.Response.MissingBlobDigests {
+				fmt.Printf(prefix+"\t   - %s\n", getColoredDigest(mbd))
+			}
 		}
 	}
 }

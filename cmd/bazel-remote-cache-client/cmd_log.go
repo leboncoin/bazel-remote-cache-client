@@ -16,42 +16,72 @@ import (
 
 func newLogCmd(_ *application) *cobra.Command {
 	var (
-		logFilePath string
+		showMetadata bool
 	)
 
 	cmd := cobra.Command{
-		Use:   "log [flags]",
-		Short: "Print in a human-readable a remote execution gRPC log file",
+		Use:   "log [flags] <filepath>...",
+		Short: "Print in a human-readable gRPC remote execution log files",
+		Args:  cobra.MinimumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			logFile, err := os.Open(logFilePath)
-			if err != nil {
-				return fmt.Errorf("can't open file %q: %v", logFilePath, err)
-			}
-
-			defer func() {
-				_ = logFile.Close()
-			}()
-
 			var count int
-			return readStreamProtoLog(logFile, func(le *bzlremotelogging.LogEntry) {
-				if count > 0 {
-					fmt.Println()
+			for _, logFilePath := range args {
+				if len(args) > 1 {
+					if count > 0 {
+						fmt.Println()
+					}
+
+					fmt.Printf("%s\n------\n", logFilePath)
 				}
 
-				printLogEntry(le)
+				if err := printLogFile(logFilePath, showMetadata); err != nil {
+					return err
+				}
 
 				count++
-			})
+			}
+
+			return nil
 		},
+		Example: `  To generate a log file:
+	$ bazel build \
+	    --remote_cache=grpc://localhost:9092 \
+	    --experimental_remote_grpc_log=/tmp/grpc.log \
+	    //...
+
+  To parse this log file:
+	$ bazel-remote-cache-client log /tmp/grpc.log`,
 	}
 
 	fl := cmd.Flags()
-	fl.StringVar(
-		&logFilePath, "file", "",
-		"Path of the log file to parse",
+	fl.BoolVarP(
+		&showMetadata, "show-metadata", "m", false,
+		"Show metadata of all log entries",
 	)
 
 	return &cmd
+}
+
+func printLogFile(logFilePath string, showMetadata bool) error {
+	logFile, err := os.Open(logFilePath)
+	if err != nil {
+		return fmt.Errorf("can't open file %q: %v", logFilePath, err)
+	}
+
+	defer func() {
+		_ = logFile.Close()
+	}()
+
+	var count int
+	return readStreamProtoLog(logFile, func(le *bzlremotelogging.LogEntry) {
+		if count > 0 {
+			fmt.Println()
+		}
+
+		printLogEntry(le, showMetadata)
+
+		count++
+	})
 }
 
 func readStreamProtoLog(r io.Reader, processLogFunc func(le *bzlremotelogging.LogEntry)) error {

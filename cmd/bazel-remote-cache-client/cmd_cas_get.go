@@ -82,15 +82,15 @@ func newCASGetCmd(app *application) *cobra.Command {
 		},
 	}
 
-	flags := cmd.Flags()
-	flags.StringVarP(
+	fl := cmd.Flags()
+	fl.StringVarP(
 		&outputFilePath, "output", "o", "",
 		"Output file to write the blob",
 	)
-	flags.BoolVarP(
+	fl.BoolVarP(
 		&isExecutable, "exec", "x", false,
 		"The blob content is executable",
 	)
 
-	return &cmd
+	return app.newRemoteCacheCommand(&cmd)
 }

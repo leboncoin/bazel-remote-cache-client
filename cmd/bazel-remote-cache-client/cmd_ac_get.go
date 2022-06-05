@@ -8,7 +8,7 @@ import (
 )
 
 func newACGetCmd(app *application) *cobra.Command {
-	return &cobra.Command{
+	return app.newRemoteCacheCommand(&cobra.Command{
 		Use:   "get [flags] <digest> ...",
 		Short: "Get action result metadata from Bazel remote cache",
 		Args:  cobra.MinimumNArgs(1),
@@ -46,5 +46,5 @@ func newACGetCmd(app *application) *cobra.Command {
 
 			return nil
 		},
-	}
+	})
 }
